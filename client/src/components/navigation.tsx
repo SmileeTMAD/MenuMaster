@@ -35,7 +35,7 @@ export default function Navigation() {
           </div>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-8">
+          <div className="hidden md:flex items-center space-x-8">
             <button 
               onClick={() => scrollToSection("home")}
               className="text-coffee-700 hover:text-coffee-500 transition-colors"
@@ -60,6 +60,7 @@ export default function Navigation() {
             >
               Contacto
             </button>
+            <CartButton />
           </div>
           
           {/* Mobile Menu Button */}
@@ -101,6 +102,9 @@ export default function Navigation() {
               >
                 Contacto
               </button>
+              <div className="pt-2">
+                <CartButton />
+              </div>
             </div>
           </div>
         )}

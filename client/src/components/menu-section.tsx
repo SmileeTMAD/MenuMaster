@@ -1,23 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { menuCategories, formatPrice, searchMenuItems } from "@/lib/menu-data";
+import { useCart } from "@/contexts/CartContext";
+import { useToast } from "@/hooks/use-toast";
 import type { MenuItem } from "@shared/schema";
 
 export default function MenuSection() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
+  const { addItem } = useCart();
+  const { toast } = useToast();
 
   const { data: menuItems = [], isLoading } = useQuery<MenuItem[]>({
     queryKey: ["/api/menu"],
   });
 
-  useEffect(() => {
+  const filteredItems = useMemo(() => {
     let filtered = menuItems;
     
     if (selectedCategory !== "all") {
@@ -28,8 +31,22 @@ export default function MenuSection() {
       filtered = searchMenuItems(filtered, searchTerm);
     }
     
-    setFilteredItems(filtered);
+    return filtered;
   }, [menuItems, selectedCategory, searchTerm]);
+
+  const handleAddToCart = (item: MenuItem) => {
+    addItem({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      category: item.category
+    });
+    
+    toast({
+      title: "Item adicionado ao carrinho!",
+      description: `${item.name} foi adicionado ao seu carrinho.`,
+    });
+  };
 
   const getCategoryImage = (category: string) => {
     const images: Record<string, string> = {
@@ -161,11 +178,23 @@ export default function MenuSection() {
                         <CardContent className="p-6">
                           <div className="space-y-3">
                             {categoryItems.slice(0, 4).map((item) => (
-                              <div key={item.id} className="flex justify-between items-center">
-                                <span className="text-coffee-700 text-sm">{item.name}</span>
-                                <Badge variant="secondary" className="bg-coffee-100 text-coffee-800 font-semibold">
-                                  {formatPrice(item.price)}
-                                </Badge>
+                              <div key={item.id} className="flex justify-between items-center group">
+                                <div className="flex-1">
+                                  <span className="text-coffee-700 text-sm">{item.name}</span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Badge variant="secondary" className="bg-coffee-100 text-coffee-800 font-semibold">
+                                    {formatPrice(item.price)}
+                                  </Badge>
+                                  <Button
+                                    onClick={() => handleAddToCart(item)}
+                                    size="sm"
+                                    variant="outline"
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 h-6 w-6 p-0 border-coffee-300 hover:bg-coffee-500 hover:text-white"
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                  </Button>
+                                </div>
                               </div>
                             ))}
                             {categoryItems.length > 4 && (
@@ -198,7 +227,7 @@ export default function MenuSection() {
                         {item.description}
                       </p>
                     )}
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center mb-3">
                       <Badge className="bg-coffee-500 text-white hover:bg-coffee-600 font-semibold">
                         {formatPrice(item.price)}
                       </Badge>
@@ -206,6 +235,14 @@ export default function MenuSection() {
                         {menuCategories.find(cat => cat.id === item.category)?.name || item.category}
                       </Badge>
                     </div>
+                    <Button
+                      onClick={() => handleAddToCart(item)}
+                      className="w-full bg-coffee-500 hover:bg-coffee-600 text-white transition-colors duration-200"
+                      size="sm"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar ao Carrinho
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
