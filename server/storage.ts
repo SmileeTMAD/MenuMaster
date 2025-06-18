@@ -2,12 +2,15 @@ import {
   users, 
   menuItems, 
   reservations,
+  orders,
   type User, 
   type InsertUser, 
   type MenuItem, 
   type InsertMenuItem,
   type Reservation,
-  type InsertReservation 
+  type InsertReservation,
+  type Order,
+  type InsertOrder 
 } from "@shared/schema";
 
 export interface IStorage {
@@ -25,23 +28,33 @@ export interface IStorage {
   createReservation(reservation: InsertReservation): Promise<Reservation>;
   getAllReservations(): Promise<Reservation[]>;
   updateReservationStatus(id: number, status: string): Promise<Reservation | undefined>;
+  
+  // Order methods
+  createOrder(order: InsertOrder): Promise<Order>;
+  getAllOrders(): Promise<Order[]>;
+  getOrder(id: number): Promise<Order | undefined>;
+  updateOrderStatus(id: number, status: string): Promise<Order | undefined>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private menuItems: Map<number, MenuItem>;
   private reservations: Map<number, Reservation>;
+  private orders: Map<number, Order>;
   private currentUserId: number;
   private currentMenuItemId: number;
   private currentReservationId: number;
+  private currentOrderId: number;
 
   constructor() {
     this.users = new Map();
     this.menuItems = new Map();
     this.reservations = new Map();
+    this.orders = new Map();
     this.currentUserId = 1;
     this.currentMenuItemId = 1;
     this.currentReservationId = 1;
+    this.currentOrderId = 1;
     
     // Initialize with complete La Buena menu data
     this.initializeMenuData();
@@ -373,6 +386,36 @@ export class MemStorage implements IStorage {
       reservation.status = status;
       this.reservations.set(id, reservation);
       return reservation;
+    }
+    return undefined;
+  }
+
+  async createOrder(insertOrder: InsertOrder): Promise<Order> {
+    const id = this.currentOrderId++;
+    const order: Order = {
+      ...insertOrder,
+      id,
+      status: "pending",
+      createdAt: new Date().toISOString()
+    };
+    this.orders.set(id, order);
+    return order;
+  }
+
+  async getAllOrders(): Promise<Order[]> {
+    return Array.from(this.orders.values());
+  }
+
+  async getOrder(id: number): Promise<Order | undefined> {
+    return this.orders.get(id);
+  }
+
+  async updateOrderStatus(id: number, status: string): Promise<Order | undefined> {
+    const order = this.orders.get(id);
+    if (order) {
+      order.status = status;
+      this.orders.set(id, order);
+      return order;
     }
     return undefined;
   }

@@ -29,6 +29,20 @@ export const reservations = pgTable("reservations", {
   status: text("status").default("pending"), // pending, confirmed, cancelled
 });
 
+export const orders = pgTable("orders", {
+  id: serial("id").primaryKey(),
+  customerName: text("customer_name").notNull(),
+  customerPhone: text("customer_phone").notNull(),
+  customerEmail: text("customer_email"),
+  items: text("items").notNull(), // JSON string of cart items
+  totalAmount: integer("total_amount").notNull(), // Total in cents
+  orderType: text("order_type").notNull(), // delivery, pickup, dine_in
+  deliveryAddress: text("delivery_address"),
+  notes: text("notes"),
+  status: text("status").default("pending"), // pending, confirmed, preparing, ready, completed, cancelled
+  createdAt: text("created_at").notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -43,9 +57,26 @@ export const insertReservationSchema = createInsertSchema(reservations).omit({
   status: true,
 });
 
+export const insertOrderSchema = createInsertSchema(orders).omit({
+  id: true,
+  status: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type MenuItem = typeof menuItems.$inferSelect;
 export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
 export type Reservation = typeof reservations.$inferSelect;
 export type InsertReservation = z.infer<typeof insertReservationSchema>;
+export type Order = typeof orders.$inferSelect;
+export type InsertOrder = z.infer<typeof insertOrderSchema>;
+
+// Cart item type for frontend
+export type CartItem = {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  category: string;
+};
