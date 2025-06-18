@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { CartButton } from "@/components/cart-button";
 
 export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
